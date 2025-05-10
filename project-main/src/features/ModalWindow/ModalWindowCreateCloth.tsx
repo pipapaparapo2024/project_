@@ -1,13 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, FC } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
-import { FC } from "react";
-import { useClothStore } from "./CreateStore";
-import { SelectWindow } from "./SelectWindow";
-import { style } from "./CreateStore";
+import { useClothStore } from "../createCloth/CreateStore";
+import { SelectWindow } from "../createCloth/SelectWindow";
+import { style } from "../createCloth/CreateStore";
 
 export const ModalWindowCreateCloth: FC = () => {
   const [open, setOpen] = useState(false);
@@ -15,7 +14,8 @@ export const ModalWindowCreateCloth: FC = () => {
   const handleClose = () => setOpen(false);
 
   const {
-    spaceContainer,
+    placeContainer,
+    getClothes,
     typeContainer,
     name,
     photoUrl,
@@ -27,10 +27,13 @@ export const ModalWindowCreateCloth: FC = () => {
     setPlace,
     handleSubmit,
   } = useClothStore();
-
-  const formattedSpaceContainer = spaceContainer.map((space) => ({
-    id: space.id,
-    value: space.space,
+  useEffect(() => {
+    getClothes();
+  }, []);
+  
+  const formattedSpaceContainer = placeContainer.map((place) => ({
+    id: place.id,
+    value: place.place,
   }));
   const formattedTypeContainer = typeContainer.map((type) => ({
     id: type.id,
@@ -39,16 +42,16 @@ export const ModalWindowCreateCloth: FC = () => {
 
   return (
     <div>
-      <Button variant="contained" onClick={handleOpen}>Create cloth</Button>
+      <Button variant="contained" onClick={handleOpen}>
+        Create cloth
+      </Button>
       <Modal open={open} onClose={handleClose}>
         <Box sx={style}>
           <Typography>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                handleSubmit(
-                  e,
-                );
+                handleSubmit(e);
                 handleClose();
               }}
             >
@@ -80,13 +83,13 @@ export const ModalWindowCreateCloth: FC = () => {
               <SelectWindow
                 name="Type"
                 selectValue={formattedTypeContainer}
-                onChange={(value) => setType((value))} 
+                onChange={(value) => setType(value)}
               />
 
               <SelectWindow
                 name="Space"
                 selectValue={formattedSpaceContainer}
-                onChange={(value) => setPlace((value))} 
+                onChange={(value) => setPlace(value)}
               />
 
               <Button type="submit" variant="contained" color="primary">

@@ -15,9 +15,9 @@ export const style = {
   p: 4,
 };
 
-export interface SpaceProps {
+export interface PlaceProps {
   id: number;
-  space: string;
+  place: string;
 }
 
 export interface TypeProps {
@@ -26,6 +26,7 @@ export interface TypeProps {
 }
 
 export interface Cloth {
+  id?: number;
   name: string;
   photoUrl: string;
   size: string;
@@ -34,13 +35,16 @@ export interface Cloth {
 }
 
 export type ClothState = {
-  spaceContainer: SpaceProps[];
-  addSpace: (space: string) => void;
-  getSpace: () => void;
-
+  placeContainer: PlaceProps[];
+  addPlace: (place: string) => void;
+  getPlace: () => void;
+  editPlace: (id: number, place: string) => void;
+  deletePlace: (id: number) => void;
   typeContainer: TypeProps[];
   addType: (type: string) => void;
   getType: () => void;
+  editType: (id: number, type: string) => void;
+  deleteType: (id: number) => void;
 
   name: string;
   photoUrl: string;
@@ -56,32 +60,90 @@ export type ClothState = {
   clothes: Cloth[];
   addCloth: (cloth: Cloth) => void;
   getClothes: () => void;
+  editCloth: (id: number, cloth: Omit<Cloth, "id">) => void;
+  deleteCloth: (id: number) => void;
   handleSubmit: (e: React.FormEvent) => void;
 };
 
 export const useClothStore = create<ClothState>((set, get) => ({
-  spaceContainer: [],
-  addSpace: (space: string) => {
+  placeContainer: [],
+  editPlace: (id: number, place: string) => {
     api
-      .post<SpaceProps>("/places", { space })
+      .put<PlaceProps>(`/places/${id}`, { place })
       .then((response) => {
         set((state) => ({
-          spaceContainer: [...state.spaceContainer, response.data],
+          placeContainer: state.placeContainer.map((item) =>
+            item.id === id ? response.data : item
+          ),
         }));
       })
       .catch((error) => {
-        console.error("Failed to add space:", error);
+        console.error("Failed to edit place:", error);
+        throw new Error("Ошибка при редактировании пространства");
+      });
+  },
+  deletePlace: (id: number) => {
+    api
+      .delete(`/places/${id}`)
+      .then(() => {
+        set((state) => ({
+          placeContainer: state.placeContainer.filter((item) => item.id !== id),
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to delete place:", error);
+        throw new Error("Ошибка при удалении пространства");
+      });
+  },
+  editType: (id: number, type: string) => {
+    api
+      .put<TypeProps>(`/cloth_types/${id}`, { type })
+      .then((response) => {
+        set((state) => ({
+          typeContainer: state.typeContainer.map((item) =>
+            item.id === id ? response.data : item
+          ),
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to edit type:", error);
+        throw new Error("Ошибка при редактировании типа");
+      });
+  },
+  deleteType: (id: number) => {
+    api
+      .delete(`/cloth_types/${id}`)
+      .then(() => {
+        set((state) => ({
+          typeContainer: state.typeContainer.filter((item) => item.id !== id),
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to delete type:", error);
+        throw new Error("Ошибка при удалении типа");
+      });
+  },
+  addPlace: (place: string) => {
+    api
+      .post<PlaceProps>("/places", { place })
+      .then((response) => {
+        set((state) => ({
+          placeContainer: [...state.placeContainer, response.data],
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to add place:", error);
         throw new Error("Ошибка при добавлении пространства");
       });
   },
-  getSpace: () => {
+  getPlace: () => {
     api
-      .get<SpaceProps[]>("/places")
+      .get<PlaceProps[]>("/places")
       .then((response) => {
-        set({ spaceContainer: response.data });
+        set({ placeContainer: response.data });
       })
       .catch((error) => {
-        console.error("Failed to get spaces:", error);
+        console.error("Failed to get places:", error);
         throw new Error("Ошибка при получении пространств");
       });
   },
@@ -139,14 +201,14 @@ export const useClothStore = create<ClothState>((set, get) => ({
   },
   handleSubmit: (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     const { name, photoUrl, size, type, place, addCloth } = get();
-
+  
     if (!name || !photoUrl || !size || !type || !place) {
       alert("Пожалуйста, заполните все поля");
       return;
     }
-
+  
     const newCloth: Cloth = {
       name,
       photoUrl,
@@ -154,11 +216,11 @@ export const useClothStore = create<ClothState>((set, get) => ({
       type,
       place,
     };
-
+  
     api
       .post("/clothes", newCloth)
-      .then(() => {
-        addCloth(newCloth); // Добавляем одежду в локальное состояние
+      .then((response) => {
+        addCloth(response.data); 
         set({
           name: "",
           photoUrl: "",
@@ -171,6 +233,35 @@ export const useClothStore = create<ClothState>((set, get) => ({
       .catch((error) => {
         console.error("Failed to add cloth:", error);
         alert("Ошибка при добавлении одежды");
+      });
+  },
+  editCloth: (id: number, cloth: Omit<Cloth, "id">) => {
+    api
+      .put<Cloth>(`/clothes/${id}`, cloth)
+      .then((response) => {
+        set((state) => ({
+          clothes: state.clothes.map((item) =>
+            item.id === id ? response.data : item
+          ),
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to edit cloth:", error);
+        throw new Error("Ошибка при редактировании одежды");
+      });
+  },
+
+  deleteCloth: (id: number) => {
+    api
+      .delete(`/clothes/${id}`)
+      .then(() => {
+        set((state) => ({
+          clothes: state.clothes.filter((item) => item.id !== id),
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to delete cloth:", error);
+        throw new Error("Ошибка при удалении одежды");
       });
   },
 }));

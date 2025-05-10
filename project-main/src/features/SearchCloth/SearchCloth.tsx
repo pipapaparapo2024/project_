@@ -9,7 +9,7 @@ export const SearchCloth: FC = () => {
     <>
       <input
         type="text"
-        className="text-white border border-gray-500 rounded-md p-2"
+        className="text-white border border-gray-700 rounded-md p-2"
         placeholder="Enter name.."
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}

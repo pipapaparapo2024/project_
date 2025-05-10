@@ -4,13 +4,13 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Button } from "@mui/material";
 import { LoginFormData } from "../../entities/User/useUserSlice";
-import { registerUser } from "../../entities/User/useUserSlice";
+import { useUserStore } from "../../entities/User/useUserSlice";
 import { useNavigate } from "react-router-dom";
 
 export const RegisterForm: FC = () => {
   const { register, handleSubmit } = useForm<LoginFormData>();
+  const {registerUser}=useUserStore();
   const navigate = useNavigate();
-
 
   const onSubmit = async (User: LoginFormData) => {
     registerUser(User)

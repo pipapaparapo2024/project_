@@ -4,7 +4,7 @@ import { Layout } from "../features/Layout/Layout";
 
 export const WeardropPage: FC = () => {
   return (
-    <div className="mx-40">
+    <div>
       <Layout><Weardrop/></Layout>
     </div>
   );
